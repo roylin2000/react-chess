@@ -143,6 +143,8 @@ function Square(props) {
   
   //===============================================
 
+
+
   class Game extends React.Component {
       constructor(props){
           super(props);
@@ -277,23 +279,19 @@ function Square(props) {
             return;
           }
 
-          //if your first click was on a black pawn
-          if(this.state.clicked === 'Bpawn'){
-            squares = this.movePawn(col,row,squares)
-            
-          }else if(this.state.clicked === 'Bknight'){
-            squares = this.moveKnight(col,row,squares);
-            
-          }else if(this.state.clicked === 'Bbishop'){
-            squares = this.moveBishop(col,row,squares);
-            
-          }else if(this.state.clicked === 'Brook'){
-            squares = this.moveRook(col,row,squares);
-            
-          }else if(this.state.clicked === 'Bqueen'){
-            squares = this.moveQueen(col,row,squares);
-            
-          }
+          // calls the appropriate function for moving a piece
+          squares = this.state.clicked === 'Bpawn'
+          ? this.movePawn(col,row,squares)
+          : this.state.clicked === 'Bknight'
+          ? squares = this.moveKnight(col,row,squares)
+          : this.state.clicked === 'Bbishop'
+          ? squares = this.moveBishop(col,row,squares)
+          : this.state.clicked === 'Brook'
+          ? squares = this.moveRook(col,row,squares)
+          : this.state.clicked === 'Bqueen'
+          ? squares = this.moveQueen(col,row,squares)
+          : squares
+
         }
 
         // this section is for the coordinates of the moves
