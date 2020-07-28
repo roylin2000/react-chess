@@ -290,6 +290,8 @@ function Square(props) {
         ? squares = moveRook(col,row,squares)
         : clicked === 'Bqueen'
         ? squares = moveQueen(col,row,squares)
+        : clicked === 'Bking'
+        ? squares = moveKing(col,row,squares)
         : squares
 
       }
@@ -596,6 +598,29 @@ function Square(props) {
     return squares;
   }
 
+  const moveKing = (col,row,board) => {
+    let squares = []
+    // to keep the array immutable
+    for (let x = 0; x < 8; x++){
+      const arr = board[x].slice();
+
+      squares = squares.concat([arr])
+
+    }
+
+    if(Math.abs(pos.col - col) <= 1 && Math.abs(pos.row - row) <= 1){
+      //moving the piece
+      squares[col][row] = 'Bking'
+      squares[pos.col][pos.row] = null
+      //reset for new click
+      updateClicked(null)
+      updatePos(null)
+    }
+
+    return squares
+
+  }
+
 
 
 
@@ -639,10 +664,7 @@ function Square(props) {
     </div>
   );
 
-
-
-
-  }
+}
 
 
  /*  class Game extends React.Component {
