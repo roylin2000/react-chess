@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import Bking from '/Users/roy/VS Code/Chess/react-chess/src/Bking.png'
@@ -142,10 +142,510 @@ function Square(props) {
   }
   
   //===============================================
+  const Game = () => {
+    const boardSetup = () => {
+      let chessBoard = []
+
+      for (let x = 0; x < 8; x++){
+        chessBoard.push(Array(8).fill(null));
+      }
+
+      for (let x = 0; x < 8; x++){
+        
+        chessBoard[x][1] = "Bpawn"
+        chessBoard[x][6] = "Wpawn"
+        
+      }
+
+      chessBoard[0][0] = "Brook"
+      chessBoard[7][0] = "Brook"
+      
+      chessBoard[1][0] = "Bknight"
+      chessBoard[6][0] = "Bknight"
+
+      chessBoard[2][0] = "Bbishop"
+      chessBoard[5][0] = "Bbishop"
+
+      chessBoard[3][0] = "Bqueen"
+      chessBoard[4][0] = "Bking"
+
+      chessBoard[0][7] = "Wrook"
+      chessBoard[7][7] = "Wrook"
+
+      chessBoard[1][7] = "Wknight"
+      chessBoard[6][7] = "Wknight"
+
+      chessBoard[2][7] = "Wbishop"
+      chessBoard[5][7] = "Wbishop"
+
+      chessBoard[3][7] = "Wqueen"
+      chessBoard[4][7] = "Wking"
+
+
+      return chessBoard;
+      
+    }
+
+    const [history, updateHistory] = useState([{
+      squares : boardSetup(),
+      moveCord : null,
+    }])
+
+    const [stepNumber, updateStepNumber] = useState(0)
+    const [bIsNext, updateBIsNext] = useState(true)
+    const [listDescend, updateListDescend] = useState(true)
+    const [clicked, updateClicked] = useState(null)
+    const [pos, updatePos] = useState({col: null, row: null})
+
+
+    const handleClick = i => {
+      // this is for the movelist section
+      const tempHistory = history.slice(0, stepNumber + 1); 
+      const current = tempHistory[tempHistory.length - 1];
+      let squares = []
+
+      // to keep the array immutable 
+      for (let x = 0; x < 8; x++){
+        const arr = current.squares[x].slice();
+
+        squares.push(arr)
+
+      }
+     
+      // first click
+      const col = i % 8;
+      const row = Math.floor(i/8) 
+      let loc = squares[col][row]
+
+      // this is to check if it is the first click
+      if(clicked === null && loc === null){
+        return;
+      }else{
+
+         updateClicked(loc === 'Bpawn'
+        ? 'Bpawn'
+        : loc === 'Bbishop'
+        ? 'Bbishop'
+        : loc === 'Bking'
+        ? 'Bking'
+        : loc === 'Bqueen'
+        ? 'Bqueen'
+        : loc === 'Brook'
+        ? 'Brook'
+        : loc === 'Bknight'
+        ? 'Bknight'
+        : clicked)
+
+        if(loc === 'Bpawn'
+           || loc === 'Bking'
+           || loc === 'Bqueen'
+           || loc === 'Bknight'
+           || loc === 'Brook'
+           || loc === 'Bbishop'
+           ){
+          updatePos({col: col, row: row}) 
+          return
+        }
+
+        //Checks which piece you picked up and sets the state for the next click
+        /* if(loc === 'Bpawn'){
+          updateClicked ('Bpawn')
+          updatePos ({col: col, row: row})
+          return;
+
+        }else if(loc === 'Bbishop'){
+          updateClicked ('Bbishop')
+          updatePos ({col: col, row: row})
+          return;
+
+        }else if(loc === 'Bking'){
+          updateClicked ('Bking')
+          updatePos ({col: col, row: row})
+          return;
+
+        }else if(loc === 'Bqueen'){
+          updateClicked ('Bqueen')
+          updatePos ({col: col, row: row})
+          return;
+
+        }else if(loc === 'Brook'){
+          updateClicked ('Brook')
+          updatePos ({col: col, row: row})
+          return;
+
+        }else if(loc === 'Bknight'){
+          updateClicked ('Bknight')
+          updatePos ({col: col, row: row})
+          return;
+        } */
+
+        // calls the appropriate function for moving a piece
+        squares = clicked === 'Bpawn'
+        ? movePawn(col,row,squares)
+        : clicked === 'Bknight'
+        ? squares = moveKnight(col,row,squares)
+        : clicked === 'Bbishop'
+        ? squares = moveBishop(col,row,squares)
+        : clicked === 'Brook'
+        ? squares = moveRook(col,row,squares)
+        : clicked === 'Bqueen'
+        ? squares = moveQueen(col,row,squares)
+        : squares
+
+      }
+
+      // this section is for the coordinates of the moves
+      const boardCord = []
+
+      for(let x = 0; x < 8; x++){
+
+        let inner = []
+        let letter = String.fromCharCode(65 + x);
+          
+        for(let y = 8; y > 0; y--){
+            inner.push(letter+y)
+        }
+        
+        boardCord.push(inner)
+      }
+
+      //checking if the board has changed at all
+      let boardChange = false;
+
+      for(let x = 0; x < 8; x++){
+        for(let y = 0; y < 8; y++){
+          if(current.squares[x][y] !== squares[x][y]){
+            boardChange = true
+          }
+        }
+      }
+      
+      if(boardChange){
+        //setState at the end if the board changes
+        updateHistory(tempHistory.concat([{
+          squares: squares, 
+          moveCord: boardCord[col][row]
+        }]))
+
+        updateStepNumber(tempHistory.length)
+        updateBIsNext(!bIsNext)
+      }
+
+  }
+
+    
+
+    const jumpTo = step => {
+      updateStepNumber(step)
+      updateBIsNext((step%2) === 0)
+      updateClicked(null)
+      updatePos(null)
+  }
+
+
+  const movePawn = (col,row,board) => {
+    let squares = []
+    // to keep the array immutable
+    for (let x = 0; x < 8; x++){
+      const arr = [...board[x]];
+
+      squares = squares.concat([arr])
+
+    }
+
+    //for taking opponents piece
+    if((col === pos.col + 1 || col === pos.col - 1) && row === pos.row + 1){
+      if(squares[col][row] != null){
+         //puts new pawn while removing old pawn
+         squares[col][row] = 'Bpawn'
+         squares[pos.col][pos.row] = null
+         //resets for new click
+         updateClicked(null)
+         updatePos(null)
+         return squares;
+      }
+    }
+
+    //pawns must stay in the same column when moving
+    if(col === pos.col){
+      //can take one or two steps forward
+      if(pos.row === 1 ? (row === (pos.row + 1) || row === (pos.row + 2)) : (row === (pos.row + 1))){
+        for(let x = 1; x <= Math.abs(row - pos.row) ; x ++){
+          if(squares[pos.col][pos.row+x] != null){
+            return squares;
+          }
+        }
+
+        //puts new pawn while removing old pawn
+        squares[col][row] = 'Bpawn'
+        squares[pos.col][pos.row] = null
+        //resets for new click
+        updateClicked(null)
+         updatePos(null)
+
+      }
+    }
+    return squares
+  }
+
+  const moveBishop = (col,row,board) => {
+    let squares = []
+    // to keep the array immutable
+    for (let x = 0; x < 8; x++){
+      const arr = board[x].slice();
+
+      squares = squares.concat([arr])
+
+    }
+    
+    //only works if diagonal 
+    if(Math.abs(col - pos.col)===Math.abs(row - pos.row)){
+      
+      //loop that checks if the path is clear
+      for(let x = 1; x < Math.abs(col - pos.col) ; x ++){
+
+        //this is for moving right and down
+        if((col > pos.col && row > pos.row) && squares[pos.col+x][pos.row+x] != null){
+          alert(squares[pos.col+x][pos.row+x])
+          return squares;
+
+          //this is for moving left and down
+        }else if((col < pos.col && row > pos.row) && squares[pos.col-x][pos.row+x] != null){
+          alert(squares[pos.col-x][pos.row+x])
+          return squares;
+
+          //this is for moving right and up
+        }else if((col > pos.col && row < pos.row) && squares[pos.col+x][pos.row-x] != null){
+          alert(squares[pos.col+x][pos.row-x])
+          return squares;
+
+          //this is for moving left and up
+        }else if((col < pos.col && row < pos.row) && squares[pos.col-x][pos.row-x] != null){
+          alert(squares[pos.col-x][pos.row-x])
+          return squares;
+        }
+      }
+      //moving the piece
+      squares[col][row] = 'Bbishop'
+      squares[pos.col][pos.row] = null
+      //reset for new click
+      updateClicked(null)
+      updatePos(null)
+ 
+    }
+    return squares;
+
+  }
+
+  const moveKnight = (col,row,board) => {
+    let squares = []
+    // to keep the array immutable
+    for (let x = 0; x < 8; x++){
+      const arr = board[x].slice();
+
+      squares = squares.concat([arr])
+
+    }
+
+    if((Math.abs(col - pos.col)===2 && Math.abs(row - pos.row)===1) || (Math.abs(col - pos.col)===1 && Math.abs(row - pos.row)===2) ){
+
+      //puts new piece while removing old piece
+      squares[col][row] = 'Bknight'
+      squares[pos.col][pos.row] = null
+      //reset for new click
+      updateClicked(null)
+      updatePos(null)
+
+    }
+    return squares;
+  }
+
+  const moveRook = (col,row,board) => {
+    let squares = []
+    // to keep the array immutable
+    for (let x = 0; x < 8; x++){
+      const arr = board[x].slice();
+
+      squares = squares.concat([arr])
+
+    }
+
+    // if the rook is moving horizontally
+    if(row === pos.row){
+      //check if path is clear
+      for (let x = 1; x < Math.abs(col - pos.col); x ++){
+        //going right
+        if(col > pos.col && squares[pos.col+x][row] != null){
+          return squares;
+        //going left
+        } else if(col < pos.col && squares[pos.col-x][row] != null){
+          return squares; 
+        }
+      }
+      //moving the piece
+      squares[col][row] = 'Brook'
+      squares[pos.col][pos.row] = null
+      //reset for new click
+      updateClicked(null)
+      updatePos(null)
+
+    // if the rook is moving vertically
+    }else if(col === pos.col){
+      //check if the path is clear
+      for (let y = 1; y < Math.abs(row - pos.row); y ++){
+        //going down
+        if(row > pos.row && squares[col][pos.row+y] != null){
+          return squares;
+        //going up
+        }else if(row < pos.row && squares[col][pos.row-y] != null){
+          return squares
+        }
+      }
+      //moving the piece
+      squares[col][row] = 'Brook'
+      squares[pos.col][pos.row] = null
+      //reset for new click
+      updateClicked(null)
+      updatePos(null)
+    }
+
+    return squares;
+  }
+
+  const moveQueen = (col,row,board) => {
+    let squares = []
+    // to keep the array immutable
+    for (let x = 0; x < 8; x++){
+      const arr = board[x].slice();
+
+      squares = squares.concat([arr])
+
+    }
+
+    // if the queen is moving horizontally
+    if(row === pos.row){
+      //check if path is clear
+      for (let x = 1; x < Math.abs(col - pos.col); x ++){
+        //going right
+        if(col > pos.col && squares[pos.col+x][row] != null){
+          return squares;
+        //going left
+        } else if(col < pos.col && squares[pos.col-x][row] != null){
+          return squares; 
+        }
+      }
+      //moving the piece
+      squares[col][row] = 'Bqueen'
+      squares[pos.col][pos.row] = null
+      //reset for new click
+      updateClicked(null)
+      updatePos(null)
+
+    // if the rook is moving vertically
+    }else if(col === pos.col){
+      //check if the path is clear
+      for (let y = 1; y < Math.abs(row - pos.row); y ++){
+        //going down
+        if(row > pos.row && squares[col][pos.row+y] != null){
+          return squares;
+        //going up
+        }else if(row < pos.row && squares[col][pos.row-y] != null){
+          return squares
+        }
+      }
+      //moving the piece
+      squares[col][row] = 'Bqueen'
+      squares[pos.col][pos.row] = null
+      //reset for new click
+      updateClicked(null)
+      updatePos(null)
+
+    }else if(Math.abs(col - pos.col)===Math.abs(row - pos.row)){
+      
+      //loop that checks if the path is clear
+      for(let x = 1; x < Math.abs(col - pos.col) ; x ++){
+
+        //this is for moving right and down
+        if((col > pos.col && row > pos.row) && squares[pos.col+x][pos.row+x] != null){
+          alert(squares[pos.col+x][pos.row+x])
+          return squares;
+
+          //this is for moving left and down
+        }else if((col < pos.col && row > pos.row) && squares[pos.col-x][pos.row+x] != null){
+          alert(squares[pos.col-x][pos.row+x])
+          return squares;
+
+          //this is for moving right and up
+        }else if((col > pos.col && row < pos.row) && squares[pos.col+x][pos.row-x] != null){
+          alert(squares[pos.col+x][pos.row-x])
+          return squares;
+
+          //this is for moving left and up
+        }else if((col < pos.col && row < pos.row) && squares[pos.col-x][pos.row-x] != null){
+          alert(squares[pos.col-x][pos.row-x])
+          return squares;
+        }
+      }
+      //moving the piece
+      squares[col][row] = 'Bqueen'
+      squares[pos.col][pos.row] = null
+      //reset for new click
+      updateClicked(null)
+      updatePos(null)
+    }
+    return squares;
+  }
 
 
 
-  class Game extends React.Component {
+
+
+
+
+
+  const tempHistory = history  
+  const renderCurrent = tempHistory[stepNumber];
+  
+  let status;
+  status = 'Next player: ' + (bIsNext ? 'Black' : 'Black');
+  
+
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board 
+            squares={renderCurrent.squares}
+            onClick={(i) => handleClick(i)}
+        />
+      </div>
+      <div className="game-info">
+        <div>{status}</div>   
+        
+        <button 
+          onClick={() => {updateListDescend(!listDescend)}}
+        > Flip moves
+        </button>
+
+        <ol>
+          <MoveList
+            history = {history}
+            stepNumber = {stepNumber}
+            onClick={(step) => jumpTo(step)}
+            listDescend = {listDescend}
+          />
+        </ol>
+        
+      </div>
+    </div>
+  );
+
+
+
+
+  }
+
+
+ /*  class Game extends React.Component {
       constructor(props){
           super(props);
           this.state = {
@@ -216,7 +716,7 @@ function Square(props) {
 
       handleClick = i => {
         // this is for the movelist section
-        const history = this.state.history.slice(0, this.state.stepNumber + 1); 
+        const history = history.slice(0, stepNumber + 1); 
         const current = history[history.length - 1];
         let squares = []
 
@@ -234,7 +734,7 @@ function Square(props) {
         let loc = squares[col][row]
 
         // this is to check if it is the first click
-        if(this.state.clicked === null && loc === null){
+        if(clicked === null && loc === null){
           return;
         }else{
           
@@ -280,15 +780,15 @@ function Square(props) {
           }
 
           // calls the appropriate function for moving a piece
-          squares = this.state.clicked === 'Bpawn'
+          squares = clicked === 'Bpawn'
           ? this.movePawn(col,row,squares)
-          : this.state.clicked === 'Bknight'
+          : clicked === 'Bknight'
           ? squares = this.moveKnight(col,row,squares)
-          : this.state.clicked === 'Bbishop'
+          : clicked === 'Bbishop'
           ? squares = this.moveBishop(col,row,squares)
-          : this.state.clicked === 'Brook'
+          : clicked === 'Brook'
           ? squares = this.moveRook(col,row,squares)
-          : this.state.clicked === 'Bqueen'
+          : clicked === 'Bqueen'
           ? squares = this.moveQueen(col,row,squares)
           : squares
 
@@ -328,7 +828,7 @@ function Square(props) {
                   moveCord: boardCord[col][row]
               }]),
               stepNumber: history.length,
-              blackIsNext: !this.state.blackIsNext,
+              blackIsNext: !blackIsNext,
 
           });
         }
@@ -346,11 +846,11 @@ function Square(props) {
       }
 
       //for taking opponents piece
-      if((col === this.state.pos.col + 1 || col === this.state.pos.col - 1) && row === this.state.pos.row + 1){
+      if((col === pos.col + 1 || col === pos.col - 1) && row === pos.row + 1){
         if(squares[col][row] != null){
            //puts new pawn while removing old pawn
            squares[col][row] = 'Bpawn'
-           squares[this.state.pos.col][this.state.pos.row] = null
+           squares[pos.col][pos.row] = null
            //resets for new click
            this.setState({
              clicked: null,
@@ -361,18 +861,18 @@ function Square(props) {
       }
 
       //pawns must stay in the same column when moving
-      if(col === this.state.pos.col){
+      if(col === pos.col){
         //can take one or two steps forward
-        if(this.state.pos.row === 1 ? (row === (this.state.pos.row + 1) || row === (this.state.pos.row + 2)) : (row === (this.state.pos.row + 1))){
-          for(let x = 1; x <= Math.abs(row - this.state.pos.row) ; x ++){
-            if(squares[this.state.pos.col][this.state.pos.row+x] != null){
+        if(pos.row === 1 ? (row === (pos.row + 1) || row === (pos.row + 2)) : (row === (pos.row + 1))){
+          for(let x = 1; x <= Math.abs(row - pos.row) ; x ++){
+            if(squares[pos.col][pos.row+x] != null){
               return squares;
             }
           }
 
           //puts new pawn while removing old pawn
           squares[col][row] = 'Bpawn'
-          squares[this.state.pos.col][this.state.pos.row] = null
+          squares[pos.col][pos.row] = null
           //resets for new click
           this.setState({
             clicked: null,
@@ -395,35 +895,35 @@ function Square(props) {
       }
       
       //only works if diagonal 
-      if(Math.abs(col - this.state.pos.col)===Math.abs(row - this.state.pos.row)){
+      if(Math.abs(col - pos.col)===Math.abs(row - pos.row)){
         
         //loop that checks if the path is clear
-        for(let x = 1; x < Math.abs(col - this.state.pos.col) ; x ++){
+        for(let x = 1; x < Math.abs(col - pos.col) ; x ++){
 
           //this is for moving right and down
-          if((col > this.state.pos.col && row > this.state.pos.row) && squares[this.state.pos.col+x][this.state.pos.row+x] != null){
-            alert(squares[this.state.pos.col+x][this.state.pos.row+x])
+          if((col > pos.col && row > pos.row) && squares[pos.col+x][pos.row+x] != null){
+            alert(squares[pos.col+x][pos.row+x])
             return squares;
 
             //this is for moving left and down
-          }else if((col < this.state.pos.col && row > this.state.pos.row) && squares[this.state.pos.col-x][this.state.pos.row+x] != null){
-            alert(squares[this.state.pos.col-x][this.state.pos.row+x])
+          }else if((col < pos.col && row > pos.row) && squares[pos.col-x][pos.row+x] != null){
+            alert(squares[pos.col-x][pos.row+x])
             return squares;
 
             //this is for moving right and up
-          }else if((col > this.state.pos.col && row < this.state.pos.row) && squares[this.state.pos.col+x][this.state.pos.row-x] != null){
-            alert(squares[this.state.pos.col+x][this.state.pos.row-x])
+          }else if((col > pos.col && row < pos.row) && squares[pos.col+x][pos.row-x] != null){
+            alert(squares[pos.col+x][pos.row-x])
             return squares;
 
             //this is for moving left and up
-          }else if((col < this.state.pos.col && row < this.state.pos.row) && squares[this.state.pos.col-x][this.state.pos.row-x] != null){
-            alert(squares[this.state.pos.col-x][this.state.pos.row-x])
+          }else if((col < pos.col && row < pos.row) && squares[pos.col-x][pos.row-x] != null){
+            alert(squares[pos.col-x][pos.row-x])
             return squares;
           }
         }
         //moving the piece
         squares[col][row] = 'Bbishop'
-        squares[this.state.pos.col][this.state.pos.row] = null
+        squares[pos.col][pos.row] = null
         this.setState({
           clicked: null,
           pos: null
@@ -445,11 +945,11 @@ function Square(props) {
 
       }
 
-      if((Math.abs(col - this.state.pos.col)===2 && Math.abs(row - this.state.pos.row)===1) || (Math.abs(col - this.state.pos.col)===1 && Math.abs(row - this.state.pos.row)===2) ){
+      if((Math.abs(col - pos.col)===2 && Math.abs(row - pos.row)===1) || (Math.abs(col - pos.col)===1 && Math.abs(row - pos.row)===2) ){
 
         //puts new piece while removing old piece
         squares[col][row] = 'Bknight'
-        squares[this.state.pos.col][this.state.pos.row] = null
+        squares[pos.col][pos.row] = null
         //resets for new click
         this.setState({
           clicked: null,
@@ -471,40 +971,40 @@ function Square(props) {
       }
 
       // if the rook is moving horizontally
-      if(row === this.state.pos.row){
+      if(row === pos.row){
         //check if path is clear
-        for (let x = 1; x < Math.abs(col - this.state.pos.col); x ++){
+        for (let x = 1; x < Math.abs(col - pos.col); x ++){
           //going right
-          if(col > this.state.pos.col && squares[this.state.pos.col+x][row] != null){
+          if(col > pos.col && squares[pos.col+x][row] != null){
             return squares;
           //going left
-          } else if(col < this.state.pos.col && squares[this.state.pos.col-x][row] != null){
+          } else if(col < pos.col && squares[pos.col-x][row] != null){
             return squares; 
           }
         }
         //moving the piece
         squares[col][row] = 'Brook'
-        squares[this.state.pos.col][this.state.pos.row] = null
+        squares[pos.col][pos.row] = null
         this.setState({
           clicked: null,
           pos: null
         })
 
       // if the rook is moving vertically
-      }else if(col === this.state.pos.col){
+      }else if(col === pos.col){
         //check if the path is clear
-        for (let y = 1; y < Math.abs(row - this.state.pos.row); y ++){
+        for (let y = 1; y < Math.abs(row - pos.row); y ++){
           //going down
-          if(row > this.state.pos.row && squares[col][this.state.pos.row+y] != null){
+          if(row > pos.row && squares[col][pos.row+y] != null){
             return squares;
           //going up
-          }else if(row < this.state.pos.row && squares[col][this.state.pos.row-y] != null){
+          }else if(row < pos.row && squares[col][pos.row-y] != null){
             return squares
           }
         }
         //moving the piece
         squares[col][row] = 'Brook'
-        squares[this.state.pos.col][this.state.pos.row] = null
+        squares[pos.col][pos.row] = null
         this.setState({
           clicked: null,
           pos: null
@@ -525,73 +1025,73 @@ function Square(props) {
       }
 
       // if the queen is moving horizontally
-      if(row === this.state.pos.row){
+      if(row === pos.row){
         //check if path is clear
-        for (let x = 1; x < Math.abs(col - this.state.pos.col); x ++){
+        for (let x = 1; x < Math.abs(col - pos.col); x ++){
           //going right
-          if(col > this.state.pos.col && squares[this.state.pos.col+x][row] != null){
+          if(col > pos.col && squares[pos.col+x][row] != null){
             return squares;
           //going left
-          } else if(col < this.state.pos.col && squares[this.state.pos.col-x][row] != null){
+          } else if(col < pos.col && squares[pos.col-x][row] != null){
             return squares; 
           }
         }
         //moving the piece
         squares[col][row] = 'Bqueen'
-        squares[this.state.pos.col][this.state.pos.row] = null
+        squares[pos.col][pos.row] = null
         this.setState({
           clicked: null,
           pos: null
         })
 
       // if the rook is moving vertically
-      }else if(col === this.state.pos.col){
+      }else if(col === pos.col){
         //check if the path is clear
-        for (let y = 1; y < Math.abs(row - this.state.pos.row); y ++){
+        for (let y = 1; y < Math.abs(row - pos.row); y ++){
           //going down
-          if(row > this.state.pos.row && squares[col][this.state.pos.row+y] != null){
+          if(row > pos.row && squares[col][pos.row+y] != null){
             return squares;
           //going up
-          }else if(row < this.state.pos.row && squares[col][this.state.pos.row-y] != null){
+          }else if(row < pos.row && squares[col][pos.row-y] != null){
             return squares
           }
         }
         //moving the piece
         squares[col][row] = 'Bqueen'
-        squares[this.state.pos.col][this.state.pos.row] = null
+        squares[pos.col][pos.row] = null
         this.setState({
           clicked: null,
           pos: null
         })
-      }else if(Math.abs(col - this.state.pos.col)===Math.abs(row - this.state.pos.row)){
+      }else if(Math.abs(col - pos.col)===Math.abs(row - pos.row)){
         
         //loop that checks if the path is clear
-        for(let x = 1; x < Math.abs(col - this.state.pos.col) ; x ++){
+        for(let x = 1; x < Math.abs(col - pos.col) ; x ++){
 
           //this is for moving right and down
-          if((col > this.state.pos.col && row > this.state.pos.row) && squares[this.state.pos.col+x][this.state.pos.row+x] != null){
-            alert(squares[this.state.pos.col+x][this.state.pos.row+x])
+          if((col > pos.col && row > pos.row) && squares[pos.col+x][pos.row+x] != null){
+            alert(squares[pos.col+x][pos.row+x])
             return squares;
 
             //this is for moving left and down
-          }else if((col < this.state.pos.col && row > this.state.pos.row) && squares[this.state.pos.col-x][this.state.pos.row+x] != null){
-            alert(squares[this.state.pos.col-x][this.state.pos.row+x])
+          }else if((col < pos.col && row > pos.row) && squares[pos.col-x][pos.row+x] != null){
+            alert(squares[pos.col-x][pos.row+x])
             return squares;
 
             //this is for moving right and up
-          }else if((col > this.state.pos.col && row < this.state.pos.row) && squares[this.state.pos.col+x][this.state.pos.row-x] != null){
-            alert(squares[this.state.pos.col+x][this.state.pos.row-x])
+          }else if((col > pos.col && row < pos.row) && squares[pos.col+x][pos.row-x] != null){
+            alert(squares[pos.col+x][pos.row-x])
             return squares;
 
             //this is for moving left and up
-          }else if((col < this.state.pos.col && row < this.state.pos.row) && squares[this.state.pos.col-x][this.state.pos.row-x] != null){
-            alert(squares[this.state.pos.col-x][this.state.pos.row-x])
+          }else if((col < pos.col && row < pos.row) && squares[pos.col-x][pos.row-x] != null){
+            alert(squares[pos.col-x][pos.row-x])
             return squares;
           }
         }
         //moving the piece
         squares[col][row] = 'Bqueen'
-        squares[this.state.pos.col][this.state.pos.row] = null
+        squares[pos.col][pos.row] = null
         this.setState({
           clicked: null,
           pos: null
@@ -613,8 +1113,8 @@ function Square(props) {
 
     render() {
         
-        const history = this.state.history;
-        const current = history[this.state.stepNumber];
+        const history = history;
+        const current = history[stepNumber];
         const winner = calculateWinner(current.squares) ? current.squares[calculateWinner(current.squares)[0]] : null;
 
         
@@ -623,7 +1123,7 @@ function Square(props) {
         if(winner){
           status = 'Winner ' + winner;
         }else {
-          status = 'Next player: ' + (this.state.blackIsNext ? 'Black' : 'Black');
+          status = 'Next player: ' + (blackIsNext ? 'Black' : 'Black');
         }
         
       return (
@@ -640,17 +1140,17 @@ function Square(props) {
             
             <button 
               onClick={() => {this.setState({
-                listDescend: !this.state.listDescend
+                listDescend: !listDescend
               })}}
               >Flip moves
             </button>
 
             <ol>
               <MoveList
-                history = {this.state.history}
-                stepNumber = {this.state.stepNumber}
+                history = {history}
+                stepNumber = {stepNumber}
                 onClick={(step) => this.jumpTo(step)}
-                listDescend = {this.state.listDescend}
+                listDescend = {listDescend}
               />
             </ol>
             
@@ -658,7 +1158,7 @@ function Square(props) {
         </div>
       );
     }
-  }
+  } */
   
   // ========================================
   
@@ -667,22 +1167,3 @@ function Square(props) {
     document.getElementById('root')
   );
   
-  function calculateWinner(squares) {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-    for (let i = 0; i < lines.length; i++) {
-      const [a, b, c] = lines[i];
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return [a,b,c];
-      }
-    }
-    return null;
-  }
