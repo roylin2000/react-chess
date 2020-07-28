@@ -192,7 +192,7 @@ function Square(props) {
     }])
 
     const [stepNumber, updateStepNumber] = useState(0)
-    const [bIsNext, updateBIsNext] = useState(true)
+    const [bIsNext, updateBIsNext] = useState(false)
     const [listDescend, updateListDescend] = useState(true)
     const [clicked, updateClicked] = useState(null)
     const [pos, updatePos] = useState({col: null, row: null})
@@ -222,31 +222,60 @@ function Square(props) {
         return;
       }else{
 
-         updateClicked(loc === 'Bpawn'
-        ? 'Bpawn'
-        : loc === 'Bbishop'
-        ? 'Bbishop'
-        : loc === 'Bking'
-        ? 'Bking'
-        : loc === 'Bqueen'
-        ? 'Bqueen'
-        : loc === 'Brook'
-        ? 'Brook'
-        : loc === 'Bknight'
-        ? 'Bknight'
-        : clicked)
+        //when it's black's turn
+        if(bIsNext){
+          updateClicked(loc === 'Bpawn'
+          ? 'Bpawn'
+          : loc === 'Bbishop'
+          ? 'Bbishop'
+          : loc === 'Bking'
+          ? 'Bking'
+          : loc === 'Bqueen'
+          ? 'Bqueen'
+          : loc === 'Brook'
+          ? 'Brook'
+          : loc === 'Bknight'
+          ? 'Bknight'
+          : clicked)
 
-        if(loc === 'Bpawn'
-           || loc === 'Bking'
-           || loc === 'Bqueen'
-           || loc === 'Bknight'
-           || loc === 'Brook'
-           || loc === 'Bbishop'
-           ){
-          updatePos({col: col, row: row}) 
-          return
+          if(loc === 'Bpawn'
+          || loc === 'Bking'
+          || loc === 'Bqueen'
+          || loc === 'Bknight'
+          || loc === 'Brook'
+          || loc === 'Bbishop'
+          ){
+            updatePos({col: col, row: row}) 
+            return
+          }
+
+        //when it's white's turn
+        }else{
+          updateClicked(loc === 'Wpawn'
+          ? 'Wpawn'
+          : loc === 'Wbishop'
+          ? 'Wbishop'
+          : loc === 'Wking'
+          ? 'Wking'
+          : loc === 'Wqueen'
+          ? 'Wqueen'
+          : loc === 'Wrook'
+          ? 'Wrook'
+          : loc === 'Wknight'
+          ? 'Wknight'
+          : clicked)
+
+          if(loc === 'Wpawn'
+          || loc === 'Wking'
+          || loc === 'Wqueen'
+          || loc === 'Wknight'
+          || loc === 'Wrook'
+          || loc === 'Wbishop'
+          ){
+            updatePos({col: col, row: row}) 
+            return
+          }
         }
-
         //Checks which piece you picked up and sets the state for the next click
         /* if(loc === 'Bpawn'){
           updateClicked ('Bpawn')
@@ -280,22 +309,22 @@ function Square(props) {
         } */
 
         // calls the appropriate function for moving a piece
-        squares = clicked === 'Bpawn'
+        squares = (clicked === 'Bpawn' || clicked === 'Wpawn')
         ? movePawn(col,row,squares)
-        : clicked === 'Bknight'
+        : (clicked === 'Bknight' || clicked === 'Wknight')
         ? squares = moveKnight(col,row,squares)
-        : clicked === 'Bbishop'
+        : (clicked === 'Bbishop' || clicked === 'Wbishop')
         ? squares = moveBishop(col,row,squares)
-        : clicked === 'Brook'
+        : (clicked === 'Brook' || clicked === 'Wrook')
         ? squares = moveRook(col,row,squares)
-        : clicked === 'Bqueen'
+        : (clicked === 'Bqueen' || clicked === 'Wqueen')
         ? squares = moveQueen(col,row,squares)
-        : clicked === 'Bking'
+        : (clicked === 'Bking' || clicked === 'Wking')
         ? squares = moveKing(col,row,squares)
         : squares
 
       }
-
+      
       // this section is for the coordinates of the moves
       const boardCord = []
 
@@ -335,13 +364,11 @@ function Square(props) {
 
   }
 
-    
-
-    const jumpTo = step => {
-      updateStepNumber(step)
-      updateBIsNext((step%2) === 0)
-      updateClicked(null)
-      updatePos(null)
+  const jumpTo = step => {
+    updateStepNumber(step)
+    updateBIsNext(!((step%2) === 0))
+    updateClicked(null)
+    updatePos(null)
   }
 
 
@@ -356,10 +383,14 @@ function Square(props) {
     }
 
     //for taking opponents piece
-    if((col === pos.col + 1 || col === pos.col - 1) && row === pos.row + 1){
+    if((col === pos.col + 1 || col === pos.col - 1) 
+        && bIsNext 
+          ? row === pos.row + 1
+          : row === pos.row - 1
+      ){
       if(squares[col][row] != null){
          //puts new pawn while removing old pawn
-         squares[col][row] = 'Bpawn'
+         squares[col][row] = bIsNext ? 'Bpawn' : 'Wpawn'
          squares[pos.col][pos.row] = null
          //resets for new click
          updateClicked(null)
@@ -371,15 +402,19 @@ function Square(props) {
     //pawns must stay in the same column when moving
     if(col === pos.col){
       //can take one or two steps forward
-      if(pos.row === 1 ? (row === (pos.row + 1) || row === (pos.row + 2)) : (row === (pos.row + 1))){
+      if(bIsNext 
+        ? (pos.row === 1 ? (row === (pos.row + 1) || row === (pos.row + 2)) : (row === (pos.row + 1)))
+        : (pos.row === 6 ? (row === (pos.row - 1) || row === (pos.row - 2)) : (row === (pos.row - 1)))
+        ){
+        
         for(let x = 1; x <= Math.abs(row - pos.row) ; x ++){
-          if(squares[pos.col][pos.row+x] != null){
+          if(squares[pos.col][bIsNext ? pos.row+x : pos.row-x] != null){
             return squares;
           }
         }
 
         //puts new pawn while removing old pawn
-        squares[col][row] = 'Bpawn'
+        squares[col][row] = bIsNext ? 'Bpawn' : 'Wpawn'
         squares[pos.col][pos.row] = null
         //resets for new click
         updateClicked(null)
@@ -428,7 +463,7 @@ function Square(props) {
         }
       }
       //moving the piece
-      squares[col][row] = 'Bbishop'
+      squares[col][row] = bIsNext ? 'Bbishop' : 'Wbishop'
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
@@ -452,7 +487,7 @@ function Square(props) {
     if((Math.abs(col - pos.col)===2 && Math.abs(row - pos.row)===1) || (Math.abs(col - pos.col)===1 && Math.abs(row - pos.row)===2) ){
 
       //puts new piece while removing old piece
-      squares[col][row] = 'Bknight'
+      squares[col][row] = bIsNext ? 'Bknight' : 'Wknight'
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
@@ -485,7 +520,7 @@ function Square(props) {
         }
       }
       //moving the piece
-      squares[col][row] = 'Brook'
+      squares[col][row] = bIsNext ? 'Brook' : 'Wrook'
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
@@ -504,7 +539,7 @@ function Square(props) {
         }
       }
       //moving the piece
-      squares[col][row] = 'Brook'
+      squares[col][row] = bIsNext ? 'Brook' : 'Wrook'
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
@@ -537,7 +572,7 @@ function Square(props) {
         }
       }
       //moving the piece
-      squares[col][row] = 'Bqueen'
+      squares[col][row] = bIsNext ? 'Bqueen' : 'Wqueen'
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
@@ -556,7 +591,7 @@ function Square(props) {
         }
       }
       //moving the piece
-      squares[col][row] = 'Bqueen'
+      squares[col][row] = bIsNext ? 'Bqueen' : 'Wqueen'
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
@@ -589,7 +624,7 @@ function Square(props) {
         }
       }
       //moving the piece
-      squares[col][row] = 'Bqueen'
+      squares[col][row] = bIsNext ? 'Bqueen' : 'Wqueen'
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
@@ -610,7 +645,7 @@ function Square(props) {
 
     if(Math.abs(pos.col - col) <= 1 && Math.abs(pos.row - row) <= 1){
       //moving the piece
-      squares[col][row] = 'Bking'
+      squares[col][row] = bIsNext ? 'Bking' : 'Wking'
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
@@ -622,17 +657,11 @@ function Square(props) {
   }
 
 
-
-
-
-
-
-
-  const tempHistory = history  
-  const renderCurrent = tempHistory[stepNumber];
+ 
+  const renderCurrent = history[stepNumber];
   
   let status;
-  status = 'Next player: ' + (bIsNext ? 'Black' : 'Black');
+  status = 'Next player: ' + (bIsNext ? 'Black' : 'White');
   
 
   return (
