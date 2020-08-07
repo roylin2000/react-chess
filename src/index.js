@@ -657,7 +657,6 @@ function Square(props) {
 
   }
 
-
  
   const renderCurrent = history[stepNumber];
   
