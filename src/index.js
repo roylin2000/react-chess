@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, PureComponent } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import Bking from '/Users/roy/VS Code/Chess/react-chess/src/Bking.png'
@@ -643,6 +643,7 @@ function Square(props) {
 
     }
 
+
     if(Math.abs(pos.col - col) <= 1 && Math.abs(pos.row - row) <= 1){
       //moving the piece
       squares[col][row] = bIsNext ? 'Bking' : 'Wking'
@@ -695,7 +696,7 @@ function Square(props) {
 
 }
 
-
+  //old class component
  /*  class Game extends React.Component {
       constructor(props){
           super(props);
