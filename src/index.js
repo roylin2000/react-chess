@@ -1,4 +1,4 @@
-import React, { useState, PureComponent } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import Bking from '/Users/roy/VS Code/Chess/react-chess/src/Bking.png'
@@ -57,7 +57,7 @@ function Square(props) {
       ? <img src={Bqueen} alt = '' className={'Bpiece'}/>
       : name === "Bknight"
       ? <img src={Bknight} alt = '' className={'Bpiece'}/>
-      : name === "Brook"
+      : name === "Brook1" || name === "Brook2"
       ? <img src={Brook} alt = '' className={'Bpiece'}/>
       : name === "Bbishop"
       ? <img src={Bbishop} alt = '' className={'Bpiece'}/>
@@ -69,7 +69,7 @@ function Square(props) {
       ? <img src={Wqueen} alt = '' className={'Bpiece'}/>
       : name === "Wknight"
       ? <img src={Wknight} alt = '' className={'Bpiece'}/>
-      : name === "Wrook"
+      : name === "Wrook1" || name === "Wrook2"
       ? <img src={Wrook} alt = '' className={'Bpiece'}/>
       : name === "Wbishop"
       ? <img src={Wbishop} alt = '' className={'Bpiece'}/>
@@ -143,52 +143,52 @@ function Square(props) {
   
   //===============================================
   const Game = () => {
-    const boardSetup = () => {
-      let chessBoard = []
-
-      for (let x = 0; x < 8; x++){
-        chessBoard.push(Array(8).fill(null));
-      }
-
-      for (let x = 0; x < 8; x++){
-        
-        chessBoard[x][1] = "Bpawn"
-        chessBoard[x][6] = "Wpawn"
-        
-      }
-
-      chessBoard[0][0] = "Brook"
-      chessBoard[7][0] = "Brook"
-      
-      chessBoard[1][0] = "Bknight"
-      chessBoard[6][0] = "Bknight"
-
-      chessBoard[2][0] = "Bbishop"
-      chessBoard[5][0] = "Bbishop"
-
-      chessBoard[3][0] = "Bqueen"
-      chessBoard[4][0] = "Bking"
-
-      chessBoard[0][7] = "Wrook"
-      chessBoard[7][7] = "Wrook"
-
-      chessBoard[1][7] = "Wknight"
-      chessBoard[6][7] = "Wknight"
-
-      chessBoard[2][7] = "Wbishop"
-      chessBoard[5][7] = "Wbishop"
-
-      chessBoard[3][7] = "Wqueen"
-      chessBoard[4][7] = "Wking"
-
-
-      return chessBoard;
-      
-    }
-
     const [history, updateHistory] = useState([{
-      squares : boardSetup(),
+      squares : (() => {
+        let chessBoard = []
+  
+        for (let x = 0; x < 8; x++){
+          chessBoard.push(Array(8).fill(null));
+        }
+  
+        for (let x = 0; x < 8; x++){
+          
+          chessBoard[x][1] = "Bpawn"
+          chessBoard[x][6] = "Wpawn"
+          
+        }
+  
+        chessBoard[0][0] = "Brook1"
+        chessBoard[7][0] = "Brook2"
+        
+        chessBoard[1][0] = "Bknight"
+        chessBoard[6][0] = "Bknight"
+  
+        chessBoard[2][0] = "Bbishop"
+        chessBoard[5][0] = "Bbishop"
+  
+        chessBoard[3][0] = "Bqueen"
+        chessBoard[4][0] = "Bking"
+  
+        chessBoard[0][7] = "Wrook1"
+        chessBoard[7][7] = "Wrook2"
+  
+        chessBoard[1][7] = "Wknight"
+        chessBoard[6][7] = "Wknight"
+  
+        chessBoard[2][7] = "Wbishop"
+        chessBoard[5][7] = "Wbishop"
+  
+        chessBoard[3][7] = "Wqueen"
+        chessBoard[4][7] = "Wking"
+  
+  
+        return chessBoard;
+        
+      })(),
       moveCord : null,
+      didKingMove : {'Bking': false, 'Wking': false},
+      didRookMove: {'Brook1': false, 'Brook2': false, 'Wrook1': false, 'Wrook2': false},
     }])
 
     const [stepNumber, updateStepNumber] = useState(0)
@@ -196,7 +196,10 @@ function Square(props) {
     const [listDescend, updateListDescend] = useState(true)
     const [clicked, updateClicked] = useState(null)
     const [pos, updatePos] = useState({col: null, row: null})
-
+    const [didKingMove, updateDidKingMove] = useState({'Bking': false, 'Wking': false})
+    const [didRookMove, updateDidRookMove] = useState({'Brook1': false, 'Brook2': false, 'Wrook1': false, 'Wrook2': false})
+   
+   
 
     const handleClick = i => {
       // this is for the movelist section
@@ -212,7 +215,7 @@ function Square(props) {
 
       }
      
-      // first click
+      // current location
       const col = i % 8;
       const row = Math.floor(i/8) 
       let loc = squares[col][row]
@@ -224,56 +227,79 @@ function Square(props) {
 
         //when it's black's turn
         if(bIsNext){
-          updateClicked(loc === 'Bpawn'
-          ? 'Bpawn'
-          : loc === 'Bbishop'
-          ? 'Bbishop'
-          : loc === 'Bking'
-          ? 'Bking'
-          : loc === 'Bqueen'
-          ? 'Bqueen'
-          : loc === 'Brook'
-          ? 'Brook'
-          : loc === 'Bknight'
-          ? 'Bknight'
-          : clicked)
 
-          if(loc === 'Bpawn'
-          || loc === 'Bking'
-          || loc === 'Bqueen'
-          || loc === 'Bknight'
-          || loc === 'Brook'
-          || loc === 'Bbishop'
-          ){
-            updatePos({col: col, row: row}) 
-            return
+          //requirements for castle
+          if(clicked === 'Bking' && !didKingMove.Bking && (loc === 'Brook1'|| loc === 'Brook2')){
+
+            squares = castle(col,row,squares)
+
+          }else{
+            updateClicked(loc === 'Bpawn'
+            ? 'Bpawn'
+            : loc === 'Bbishop'
+            ? 'Bbishop'
+            : loc === 'Bking'
+            ? 'Bking'
+            : loc === 'Bqueen'
+            ? 'Bqueen'
+            : loc === 'Brook1' 
+            ? 'Brook1'
+            : loc === 'Brook2'
+            ? 'Brook2'
+            : loc === 'Bknight'
+            ? 'Bknight'
+            : clicked)
+
+            if(loc === 'Bpawn'
+            || loc === 'Bking'
+            || loc === 'Bqueen'
+            || loc === 'Bknight'
+            || loc === 'Brook1'
+            || loc === 'Brook2'
+            || loc === 'Bbishop'
+            ){
+              updatePos({col: col, row: row})
+              return
+            }
           }
 
         //when it's white's turn
         }else{
-          updateClicked(loc === 'Wpawn'
-          ? 'Wpawn'
-          : loc === 'Wbishop'
-          ? 'Wbishop'
-          : loc === 'Wking'
-          ? 'Wking'
-          : loc === 'Wqueen'
-          ? 'Wqueen'
-          : loc === 'Wrook'
-          ? 'Wrook'
-          : loc === 'Wknight'
-          ? 'Wknight'
-          : clicked)
 
-          if(loc === 'Wpawn'
-          || loc === 'Wking'
-          || loc === 'Wqueen'
-          || loc === 'Wknight'
-          || loc === 'Wrook'
-          || loc === 'Wbishop'
-          ){
-            updatePos({col: col, row: row}) 
-            return
+          //requirements for castle
+          if(clicked === 'Wking' && !didKingMove.Wking && (loc === 'Wrook1'|| loc === 'Wrook2')){
+
+            squares = castle(col,row,squares)
+
+          }else{
+
+            updateClicked(loc === 'Wpawn'
+            ? 'Wpawn'
+            : loc === 'Wbishop'
+            ? 'Wbishop'
+            : loc === 'Wking'
+            ? 'Wking'
+            : loc === 'Wqueen'
+            ? 'Wqueen'
+            : loc === 'Wrook1' 
+            ? 'Wrook1'
+            : loc === 'Wrook2'
+            ? 'Wrook2'
+            : loc === 'Wknight'
+            ? 'Wknight'
+            : clicked)
+
+            if(loc === 'Wpawn'
+            || loc === 'Wking'
+            || loc === 'Wqueen'
+            || loc === 'Wknight'
+            || loc === 'Wrook1'
+            || loc === 'Wrook2'
+            || loc === 'Wbishop'
+            ){
+              updatePos({col: col, row: row}) 
+              return
+            }
           }
         }
         //Checks which piece you picked up and sets the state for the next click
@@ -308,6 +334,7 @@ function Square(props) {
           return;
         } */
 
+        
         // calls the appropriate function for moving a piece
         squares = (clicked === 'Bpawn' || clicked === 'Wpawn')
         ? movePawn(col,row,squares)
@@ -315,7 +342,7 @@ function Square(props) {
         ? squares = moveKnight(col,row,squares)
         : (clicked === 'Bbishop' || clicked === 'Wbishop')
         ? squares = moveBishop(col,row,squares)
-        : (clicked === 'Brook' || clicked === 'Wrook')
+        : (clicked === 'Brook1' || clicked === 'Wrook1' || clicked === 'Brook2' || clicked === 'Wrook2')
         ? squares = moveRook(col,row,squares)
         : (clicked === 'Bqueen' || clicked === 'Wqueen')
         ? squares = moveQueen(col,row,squares)
@@ -355,7 +382,9 @@ function Square(props) {
         //setState at the end if the board changes
         updateHistory(tempHistory.concat([{
           squares: squares, 
-          moveCord: boardCord[col][row]
+          moveCord: boardCord[col][row],
+          didKingMove: {...didKingMove},
+          didRookMove: {...didRookMove},
         }]))
 
         updateStepNumber(tempHistory.length)
@@ -369,8 +398,63 @@ function Square(props) {
     updateBIsNext(!((step%2) === 0))
     updateClicked(null)
     updatePos(null)
+    updateDidKingMove({...history[step].didKingMove})
+    updateDidRookMove({...history[step].didRookMove})
   }
 
+  const castle = (col,row,board) => {
+    let squares = []
+    // to keep the array immutable
+    for (let x = 0; x < 8; x++){
+      const arr = [...board[x]];
+
+      squares = squares.concat([arr])
+
+    }
+    const loc = squares[col][row]
+
+    //if this rook has not moved
+    if(!didRookMove[loc]){
+
+      //checking if it is the left rook
+      if(col < pos.col){
+
+        //if space is clear between king and left rook
+        if(squares[1][row] === null
+          && squares[2][row] === null
+          && squares[3][row] === null)
+          {
+            //moving all the pieces
+            squares[col][row] = null
+            squares[pos.col][pos.row] = null
+            squares[2][row] = clicked
+            squares[3][row] = loc
+            updateClicked(null)
+            updatePos(null)
+          }
+
+      }else{
+
+        //if space is clear between king and right rook
+        if(squares[5][row] === null
+          && squares[6][row]=== null)
+          {
+            //moving all the pieces
+            squares[col][row] = null
+            squares[pos.col][pos.row] = null
+            squares[6][row] = clicked
+            squares[5][row] = loc
+            updateClicked(null)
+            updatePos(null)
+          }
+
+      }
+
+    }
+
+    return squares;
+
+  }
 
   const movePawn = (col,row,board) => {
     let squares = []
@@ -498,6 +582,7 @@ function Square(props) {
   }
 
   const moveRook = (col,row,board) => {
+    
     let squares = []
     // to keep the array immutable
     for (let x = 0; x < 8; x++){
@@ -520,11 +605,13 @@ function Square(props) {
         }
       }
       //moving the piece
-      squares[col][row] = bIsNext ? 'Brook' : 'Wrook'
+      squares[col][row] = clicked
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
       updatePos(null)
+      //noting that this rook has moved and can no longer perform castle
+      updateDidRookMove(didRookMove => ({...didRookMove, [clicked]: true}))
 
     // if the rook is moving vertically
     }else if(col === pos.col){
@@ -539,11 +626,13 @@ function Square(props) {
         }
       }
       //moving the piece
-      squares[col][row] = bIsNext ? 'Brook' : 'Wrook'
+      squares[col][row] = clicked
       squares[pos.col][pos.row] = null
       //reset for new click
       updateClicked(null)
       updatePos(null)
+      //noting that this rook has moved and can no longer perform castle
+      updateDidRookMove(didRookMove => ({...didRookMove, [clicked]: true}))
     }
 
     return squares;
@@ -651,6 +740,8 @@ function Square(props) {
       //reset for new click
       updateClicked(null)
       updatePos(null)
+      //noting that this king has moved and can no longer perform castle
+      updateDidKingMove(didKingMove => ({...didKingMove, [clicked]: true}))
     }
 
     return squares
