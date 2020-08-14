@@ -18,7 +18,7 @@ const Square = props => {
     return (
         <button
             className = "square"
-            style = {{background: props.blackBG ? 'darkgreen' : 'white'}}
+            style = {{background: props.blackBG ? 'darkolivegreen' : 'whitesmoke'}}
             onClick={props.onClick}
         >
           
