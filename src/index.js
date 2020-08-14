@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import Bking from '/Users/roy/VS Code/Chess/react-chess/src/Bking.png'
-import Bqueen from '/Users/roy/VS Code/Chess/react-chess/src/Bqueen.png'
-import Bbishop from '/Users/roy/VS Code/Chess/react-chess/src/Bbishop.png'
-import Brook from '/Users/roy/VS Code/Chess/react-chess/src/Brook.png'
-import Bknight from '/Users/roy/VS Code/Chess/react-chess/src/Bknight.png'
-import Bpawn from '/Users/roy/VS Code/Chess/react-chess/src/Bpawn.png'
-import Wpawn from '/Users/roy/VS Code/Chess/react-chess/src/Wpawn.png'
-import Wking from '/Users/roy/VS Code/Chess/react-chess/src/Wking.png'
-import Wqueen from '/Users/roy/VS Code/Chess/react-chess/src/Wqueen.png'
-import Wbishop from '/Users/roy/VS Code/Chess/react-chess/src/Wbishop.png'
-import Wrook from '/Users/roy/VS Code/Chess/react-chess/src/Wrook.png'
-import Wknight from '/Users/roy/VS Code/Chess/react-chess/src/Wknight.png'
+import Bking from '/Users/roy/VS Code/Chess/react-chess/src/Bking.gif'
+import Bqueen from '/Users/roy/VS Code/Chess/react-chess/src/Bqueen.gif'
+import Bbishop from '/Users/roy/VS Code/Chess/react-chess/src/Bbishop.gif'
+import Brook from '/Users/roy/VS Code/Chess/react-chess/src/Brook.gif'
+import Bknight from '/Users/roy/VS Code/Chess/react-chess/src/Bknight.gif'
+import Bpawn from '/Users/roy/VS Code/Chess/react-chess/src/Bpawn.gif'
+import Wpawn from '/Users/roy/VS Code/Chess/react-chess/src/Wpawn.gif'
+import Wking from '/Users/roy/VS Code/Chess/react-chess/src/Wking.gif'
+import Wqueen from '/Users/roy/VS Code/Chess/react-chess/src/Wqueen.gif'
+import Wbishop from '/Users/roy/VS Code/Chess/react-chess/src/Wbishop.gif'
+import Wrook from '/Users/roy/VS Code/Chess/react-chess/src/Wrook.gif'
+import Wknight from '/Users/roy/VS Code/Chess/react-chess/src/Wknight.gif'
 
 const Square = props => {
     return (
@@ -29,83 +29,83 @@ const Square = props => {
   
 const Board = props => {
 
-    const fillBlack = i => { //loop for the background of each square
-      const black = []
+  const fillBlack = i => { //loop for the background of each square
+    const black = []
 
-      for (let x = 0; x < 8; x++){
+    for (let x = 0; x < 8; x++){
 
-        for (let y = 0; y < 8; y++){
+      for (let y = 0; y < 8; y++){
 
-          if(x%2===0 && y%2 !== 0){
-            black.push(true)
-          }else if(x%2!==0 && y%2 ===0){
-            black.push(true)
-          }else{
-            black.push(false)
-          }
+        if(x%2===0 && y%2 !== 0){
+          black.push(true)
+        }else if(x%2!==0 && y%2 ===0){
+          black.push(true)
+        }else{
+          black.push(false)
         }
       }
-      return black[i];
     }
+    return black[i];
+  }
 
-    const checkValue = name => {
-      return name === "Bking" 
-      ? <img src={Bking} alt = '' className={'king'}/>
-      : name === "Bpawn"
-      ? <img src={Bpawn} alt = '' className={'pawn'}/>
-      : name === "Bqueen"
-      ? <img src={Bqueen} alt = '' className={'Bpiece'}/>
-      : name === "Bknight"
-      ? <img src={Bknight} alt = '' className={'Bpiece'}/>
-      : name === "Brook1" || name === "Brook2"
-      ? <img src={Brook} alt = '' className={'Bpiece'}/>
-      : name === "Bbishop"
-      ? <img src={Bbishop} alt = '' className={'Bpiece'}/>
-      : name === "Wking" 
-      ? <img src={Wking} alt = '' className={'king'}/>
-      : name === "Wpawn"
-      ? <img src={Wpawn} alt = '' className={'pawn'}/>
-      : name === "Wqueen"
-      ? <img src={Wqueen} alt = '' className={'Bpiece'}/>
-      : name === "Wknight"
-      ? <img src={Wknight} alt = '' className={'Bpiece'}/>
-      : name === "Wrook1" || name === "Wrook2"
-      ? <img src={Wrook} alt = '' className={'Bpiece'}/>
-      : name === "Wbishop"
-      ? <img src={Wbishop} alt = '' className={'Bpiece'}/>
-      : null
+  const checkValue = name => {
+    return name === "Bking" 
+    ? <img src={Bking} alt = '' className={'king'}/>
+    : name === "Bpawn"
+    ? <img src={Bpawn} alt = '' className={'pawn'}/>
+    : name === "Bqueen"
+    ? <img src={Bqueen} alt = '' className={'Bpiece'}/>
+    : name === "Bknight"
+    ? <img src={Bknight} alt = '' className={'Bpiece'}/>
+    : name === "Brook1" || name === "Brook2"
+    ? <img src={Brook} alt = '' className={'Bpiece'}/>
+    : name === "Bbishop"
+    ? <img src={Bbishop} alt = '' className={'Bpiece'}/>
+    : name === "Wking" 
+    ? <img src={Wking} alt = '' className={'king'}/>
+    : name === "Wpawn"
+    ? <img src={Wpawn} alt = '' className={'pawn'}/>
+    : name === "Wqueen"
+    ? <img src={Wqueen} alt = '' className={'Bpiece'}/>
+    : name === "Wknight"
+    ? <img src={Wknight} alt = '' className={'Bpiece'}/>
+    : name === "Wrook1" || name === "Wrook2"
+    ? <img src={Wrook} alt = '' className={'Bpiece'}/>
+    : name === "Wbishop"
+    ? <img src={Wbishop} alt = '' className={'Bpiece'}/>
+    : null
 
-    }
+  }
 
 
-    const renderSquare = i => {
+  const renderSquare = i => {
 
-      const col = i % 8;
-      const row = Math.floor(i/8) 
-     
-      return (
-        <Square 
-            blackBG = {fillBlack(i)}
-            value={checkValue(props.squares[col][row])}
-            onClick={() => props.onClick(i)}
-            
-        />
-      );
-    }
+    const col = i % 8;
+    const row = Math.floor(i/8) 
+    
+    return (
+      <Square 
+          blackBG = {fillBlack(i)}
+          value={checkValue(props.squares[col][row])}
+          onClick={() => props.onClick(i)}
+          
+      />
+    );
+  }
   
     
-    const outer = []
+  const outer = []
 
-    for(let x = 0; x < 8; x++){ //loop for setting up the board :D
+  for(let x = 0; x < 8; x++){ //loop for setting up the board :D
 
-      let inner = []
+    let inner = []
 
-      for(let y = 0; y < 8; y++){
-        inner.push(renderSquare(x*8 + y))
-      }
-
-      outer.push(<div className='board-row'>{inner}</div>)
+    for(let y = 0; y < 8; y++){
+      inner.push(renderSquare(x*8 + y))
     }
+
+    outer.push(<div className='board-row'>{inner}</div>)
+  }
   
   return (
     <div>
@@ -757,7 +757,11 @@ status = 'Next player: ' + (bIsNext ? 'Black' : 'White');
 
 return (
   <div className="game">
-    <div className="game-board">
+    <div className="game-board" 
+    style={{
+        position: 'absolute', left: '50%', top: '50%',
+        transform: 'translate(-50%, -50%)'
+    }}>
       <Board 
           squares={renderCurrent.squares}
           onClick={(i) => handleClick(i)}
@@ -791,6 +795,6 @@ return (
   
   ReactDOM.render(
     <Game />,
-    document.getElementById('root')
+    document.getElementById('root'),
   );
   

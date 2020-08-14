@@ -1,6 +1,7 @@
 body {
   font: 14px "Century Gothic", Futura, sans-serif;
   margin: 20px;
+  background-color: #D8BFD8;
 }
 
 ol, ul {
@@ -47,6 +48,7 @@ ol, ul {
 
 .game-info {
   margin-left: 20px;
+  
 }
 
 .king {
